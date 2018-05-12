@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) Cedita Ltd. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
+using System.Data;
+using Chic.Constraints;
 
 namespace Chic
 {
-    class ChicSet_TModel
+    public class Repository<TModel> : Repository<TModel, int>
+        where TModel : class, IKeyedEntity
     {
+        public Repository(IDbConnection db) : base(db)
+        {
+        }
     }
 }
