@@ -1,7 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Cedita Ltd</Authors>
+    <Company>Cedita Ltd</Company>
+    <Copyright>Cedita Ltd 2018</Copyright>
+    <PackageIconUrl>https://www.cedita.com/nuget_labs.png</PackageIconUrl>
+    <RepositoryUrl>https://www.github.com/ceditalabs/chic</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>chic coda cedita dapper repository changetracking entity migrations provisioning database data db</PackageTags>
+    <Description>Chic is a layer on top of Dapper to provide Repository layers, Provisioning and Change Tracking</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +19,9 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="2.1.23">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
