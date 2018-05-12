@@ -5,12 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="ModelServices\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Coda.Data.Sql" Version="0.3.1-pre" />
     <PackageReference Include="Dapper" Version="1.50.4" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
   </ItemGroup>
 
 </Project>
