@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
+using Chic.Abstractions;
 using Chic.Constraints;
 using Chic.Internal;
 using Chic.Internal.Models;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Chic
 {
-    public class Repository<TModel, TKey>
+    public class Repository<TModel, TKey> : IRepository<TModel, TKey>
         where TKey : IEquatable<TKey>
         where TModel : class, IKeyedEntity<TKey>
     {
