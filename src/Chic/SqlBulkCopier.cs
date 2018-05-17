@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
 using Chic.Abstractions;
+using Chic.Internal;
 using System;
 using System.Data;
 using System.Data.SqlClient;
@@ -18,56 +19,30 @@ namespace Chic
         public DataTable InternalTable { get; set; }
         public SqlTransaction Transaction { get; set; }
 
-        private readonly Type[] _mappableTypes = new[] {
-            typeof(int), typeof(decimal), typeof(double), typeof(string), typeof(bool), typeof(Guid),
-            typeof(DateTime), typeof(DateTimeOffset), typeof(float), typeof(byte)
-        };
-
-        public SqlBulkCopier(SqlConnection db, string tableName, bool deepProperties = true, SqlTransaction Transaction = null)
+        public SqlBulkCopier(SqlConnection db, string tableName, SqlTransaction Transaction = null)
         {
             Connection = db;
             BulkCopy = new SqlBulkCopy(db, SqlBulkCopyOptions.Default, Transaction);
-            Initialise(tableName, deepProperties);
+            Initialise(tableName);
         }
 
-        protected virtual bool IsMappable(PropertyInfo property)
-        {
-            var nullableBaseType = Nullable.GetUnderlyingType(property.PropertyType);
-            var baseType = nullableBaseType ?? property.PropertyType;
-            return (_mappableTypes.Contains(baseType) || baseType.IsEnum);
-        }
-
-        public void Initialise(string tableName, bool deepProperties = true)
+        public void Initialise(string tableName)
         {
             BulkCopy.DestinationTableName = tableName;
 
             // Dynamically construct a datatable and force name-based column mapping
             InternalTable = new DataTable();
-            var properties = deepProperties ?
-                typeof(TModel).GetProperties() :
-                typeof(TModel).GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
+            var tableMap = TypeTableMaps.Get<TModel>();
+            foreach (var property in tableMap.Columns)
             {
-                var nullableBaseType = Nullable.GetUnderlyingType(property.PropertyType);
-                var baseType = nullableBaseType ?? property.PropertyType;
-                if (!IsMappable(property))
-                {
-                    continue;
-                }
-
-                var mapType = nullableBaseType != null ? typeof(string) : baseType;
-                if (baseType.IsEnum)
-                {
-                    mapType = baseType.GetEnumUnderlyingType();
-                }
-
-                // If it's nullable as a base then the type used for mapping should be a string
-                InternalTable.Columns.Add(property.Name, mapType);
+                InternalTable.Columns.Add(property.Name, property.Type);
             }
 
             // Remap all of the columns by name
             foreach (DataColumn column in InternalTable.Columns)
+            {
                 BulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+            }
         }
 
         public void AddRow(TModel row)
