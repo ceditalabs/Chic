@@ -4,7 +4,6 @@ using Chic.Abstractions;
 using Chic.Constraints;
 using Chic.Internal;
 using Chic.Internal.Models;
-using Coda.Data.Sql;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -112,7 +111,7 @@ namespace Chic
                 db.Open();
             }
             using (var txn = db.BeginTransaction())
-            using (var sqlBulkCopy = new SqlBulkCopier<TModel>((SqlConnection)db, typeMap.TableName, false, (SqlTransaction)txn))
+            using (var sqlBulkCopy = new SqlBulkCopier<TModel>((SqlConnection)db, typeMap.TableName, (SqlTransaction)txn))
             {
                 try
                 {
