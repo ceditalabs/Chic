@@ -4,6 +4,7 @@ using Chic.Attributes;
 using Chic.Internal.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -38,6 +39,24 @@ namespace Chic.Internal
             typeof(string),
         };
 
+        private static readonly Dictionary<Type, SqlDbType> sqlDataTypeMap = new Dictionary<Type, SqlDbType>
+        {
+                { typeof(byte), SqlDbType.TinyInt },
+                { typeof(byte[]), SqlDbType.Image },
+                { typeof(char[]), SqlDbType.NVarChar },
+                { typeof(bool), SqlDbType.Bit },
+                { typeof(DateTime), SqlDbType.DateTime2 },
+                { typeof(DateTimeOffset), SqlDbType.DateTimeOffset },
+                { typeof(decimal), SqlDbType.Money },
+                { typeof(double), SqlDbType.Float },
+                { typeof(int), SqlDbType.Int },
+                { typeof(float), SqlDbType.Real },
+                { typeof(long), SqlDbType.BigInt },
+                { typeof(short), SqlDbType.SmallInt },
+                { typeof(string), SqlDbType.NVarChar },
+                { typeof(TimeSpan), SqlDbType.Time },
+        };
+
         private static TableRepresentation<TTableType> GetRepresentation<TTableType>()
         {
             var type = typeof(TTableType);
@@ -66,17 +85,18 @@ namespace Chic.Internal
                 var prop = Expression.Property(obj, property);
                 var body = Expression.Convert(prop, typeof(object));
 
-                var dbType = nullableBaseType != null ? typeof(string) : baseType;
+                var propertyType = nullableBaseType != null ? typeof(string) : baseType;
                 if (baseType.IsEnum)
                 {
-                    dbType = baseType.GetEnumUnderlyingType();
+                    propertyType = baseType.GetEnumUnderlyingType();
                 }
 
                 // If it's nullable as a base then the type used for mapping should be a string
                 tableRepresentation.Columns.Add(new TableProperty<TTableType>
                 {
                     Name = property.Name,
-                    Type = dbType,
+                    Type = propertyType,
+                    DbType = sqlDataTypeMap[propertyType],
                     IsDbGenerated = isDbGenerated,
                     Get = Expression.Lambda<Func<TTableType, object>>(body, obj).Compile()
                 });
