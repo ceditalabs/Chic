@@ -26,8 +26,16 @@ namespace Chic.Internal
         }
 
         private static readonly Type[] mappableTypes = {
-            typeof(int), typeof(decimal), typeof(double), typeof(string), typeof(bool), typeof(Guid),
-            typeof(DateTime), typeof(DateTimeOffset), typeof(float), typeof(byte),
+            typeof(bool),
+            typeof(byte),
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+            typeof(decimal),
+            typeof(double),
+            typeof(float),
+            typeof(Guid),
+            typeof(int),
+            typeof(string),
         };
 
         private static TableRepresentation<TTableType> GetRepresentation<TTableType>()
@@ -58,11 +66,17 @@ namespace Chic.Internal
                 var prop = Expression.Property(obj, property);
                 var body = Expression.Convert(prop, typeof(object));
 
+                var dbType = nullableBaseType != null ? typeof(string) : baseType;
+                if (baseType.IsEnum)
+                {
+                    dbType = baseType.GetEnumUnderlyingType();
+                }
+
                 // If it's nullable as a base then the type used for mapping should be a string
                 tableRepresentation.Columns.Add(new TableProperty<TTableType>
                 {
                     Name = property.Name,
-                    Type = nullableBaseType != null ? typeof(string) : baseType,
+                    Type = dbType,
                     IsDbGenerated = isDbGenerated,
                     Get = Expression.Lambda<Func<TTableType, object>>(body, obj).Compile()
                 });
@@ -73,10 +87,14 @@ namespace Chic.Internal
 
         private static bool IsMappable(PropertyInfo property)
         {
-            if (property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(DbIgnoreAttribute))) { return false; }
+            if (property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(DbIgnoreAttribute)))
+            {
+                return false;
+            }
 
             var nullableBaseType = Nullable.GetUnderlyingType(property.PropertyType);
             var baseType = nullableBaseType ?? property.PropertyType;
+
             return (mappableTypes.Contains(baseType) || baseType.IsEnum);
         }
     }
