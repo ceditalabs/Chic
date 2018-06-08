@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chic", "src\Chic\Chic.csproj", "{E7B02D1F-8583-4FB3-8871-BE81597867CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chic.DependencyInjection", "src\Chic.DependencyInjection\Chic.DependencyInjection.csproj", "{D5025B49-05D1-431A-A6EB-D6696368545D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chic.DependencyInjection", "src\Chic.DependencyInjection\Chic.DependencyInjection.csproj", "{D5025B49-05D1-431A-A6EB-D6696368545D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chic.Tests", "test\Chic.Tests\Chic.Tests.csproj", "{B1C6077C-2C97-4BA5-9A6C-BF6FC0C40EDD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D5025B49-05D1-431A-A6EB-D6696368545D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5025B49-05D1-431A-A6EB-D6696368545D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5025B49-05D1-431A-A6EB-D6696368545D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1C6077C-2C97-4BA5-9A6C-BF6FC0C40EDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1C6077C-2C97-4BA5-9A6C-BF6FC0C40EDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1C6077C-2C97-4BA5-9A6C-BF6FC0C40EDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1C6077C-2C97-4BA5-9A6C-BF6FC0C40EDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
