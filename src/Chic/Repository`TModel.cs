@@ -9,7 +9,7 @@ namespace Chic
     public class Repository<TModel> : Repository<TModel, int>, IRepository<TModel>
         where TModel : class, IKeyedEntity
     {
-        public Repository(IDbConnection db) : base(db)
+        public Repository(IDbConnection db, IModelMetadataProvider modelMetadataProvider) : base(db, modelMetadataProvider)
         {
         }
     }

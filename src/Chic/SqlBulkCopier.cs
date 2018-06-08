@@ -19,8 +19,12 @@ namespace Chic
         public DataTable InternalTable { get; set; }
         public SqlTransaction Transaction { get; set; }
 
-        public SqlBulkCopier(SqlConnection db, string tableName, SqlTransaction Transaction = null)
+        private readonly IModelMetadataProvider modelMetadataProvider;
+
+        public SqlBulkCopier(SqlConnection db, string tableName, IModelMetadataProvider modelMetadataProvider, SqlTransaction Transaction = null)
         {
+            this.modelMetadataProvider = modelMetadataProvider;
+
             Connection = db;
             BulkCopy = new SqlBulkCopy(db, SqlBulkCopyOptions.Default, Transaction);
             Initialise(tableName);
@@ -32,7 +36,7 @@ namespace Chic
 
             // Dynamically construct a datatable and force name-based column mapping
             InternalTable = new DataTable();
-            var tableMap = TypeTableMaps.Get<TModel>();
+            var tableMap = modelMetadataProvider.Get<TModel>();
             foreach (var property in tableMap.Columns)
             {
                 InternalTable.Columns.Add(property.Name, property.Type);

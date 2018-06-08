@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
-namespace Chic.Internal.Models
+using Chic.Internal.Models;
+
+namespace Chic.Abstractions
 {
-    public class TableRepresentation
+    public interface IModelMetadataProvider
     {
-        internal string TableName { get; set; }
+        ModelMetadata<TModel> Get<TModel>();
     }
 }

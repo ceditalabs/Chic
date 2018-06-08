@@ -21,14 +21,17 @@ namespace Chic
     {
         protected readonly IDbConnection db;
         protected readonly ICollection<TModel> modelCache;
-        private readonly TableRepresentation<TModel> typeMap;
+        private readonly IModelMetadataProvider modelMetadataProvider;
+        private readonly ModelMetadata<TModel> typeMap;
         private bool hasRetrievedAll;
 
-        public Repository(IDbConnection db)
+        public Repository(IDbConnection db, IModelMetadataProvider modelMetadataProvider)
         {
             this.db = db;
+            this.modelMetadataProvider = modelMetadataProvider;
+
             modelCache = new List<TModel>();
-            typeMap = TypeTableMaps.Get<TModel>();
+            typeMap = modelMetadataProvider.Get<TModel>();
         }
 
         public void ClearCache()
@@ -111,7 +114,7 @@ namespace Chic
                 db.Open();
             }
             using (var txn = db.BeginTransaction())
-            using (var sqlBulkCopy = new SqlBulkCopier<TModel>((SqlConnection)db, typeMap.TableName, (SqlTransaction)txn))
+            using (var sqlBulkCopy = new SqlBulkCopier<TModel>((SqlConnection)db, typeMap.TableName, modelMetadataProvider, (SqlTransaction)txn))
             {
                 try
                 {

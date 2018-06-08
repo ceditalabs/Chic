@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
+using Chic.Abstractions;
 using Chic.Attributes;
 using Chic.Internal.Models;
 using System;
@@ -11,22 +12,22 @@ using System.Reflection;
 
 namespace Chic.Internal
 {
-    internal static class TypeTableMaps
+    public class DefaultModelMetadataProvider : IModelMetadataProvider
     {
-        private static Dictionary<Type, TableRepresentation> TypeTableCache = new Dictionary<Type, TableRepresentation>();
+        private Dictionary<Type, ModelMetadata> TypeTableCache = new Dictionary<Type, ModelMetadata>();
 
-        internal static TableRepresentation<TTableType> Get<TTableType>()
+        public ModelMetadata<TModel> Get<TModel>()
         {
-            var type = typeof(TTableType);
+            var type = typeof(TModel);
             if (!TypeTableCache.ContainsKey(type))
             {
-                TypeTableCache.Add(type, GetRepresentation<TTableType>());
+                TypeTableCache.Add(type, GetRepresentation<TModel>());
             }
 
-            return (TableRepresentation<TTableType>)TypeTableCache[type];
+            return (ModelMetadata<TModel>)TypeTableCache[type];
         }
 
-        private static readonly Type[] mappableTypes = {
+        private readonly Type[] mappableTypes = {
             typeof(bool),
             typeof(byte),
             typeof(DateTime),
@@ -39,27 +40,27 @@ namespace Chic.Internal
             typeof(string),
         };
 
-        private static readonly Dictionary<Type, SqlDbType> sqlDataTypeMap = new Dictionary<Type, SqlDbType>
+        private readonly Dictionary<Type, SqlDbType> sqlDataTypeMap = new Dictionary<Type, SqlDbType>
         {
-                { typeof(byte), SqlDbType.TinyInt },
-                { typeof(byte[]), SqlDbType.Image },
-                { typeof(char[]), SqlDbType.NVarChar },
-                { typeof(bool), SqlDbType.Bit },
-                { typeof(DateTime), SqlDbType.DateTime2 },
-                { typeof(DateTimeOffset), SqlDbType.DateTimeOffset },
-                { typeof(decimal), SqlDbType.Money },
-                { typeof(double), SqlDbType.Float },
-                { typeof(int), SqlDbType.Int },
-                { typeof(float), SqlDbType.Real },
-                { typeof(long), SqlDbType.BigInt },
-                { typeof(short), SqlDbType.SmallInt },
-                { typeof(string), SqlDbType.NVarChar },
-                { typeof(TimeSpan), SqlDbType.Time },
+            { typeof(byte), SqlDbType.TinyInt },
+            { typeof(byte[]), SqlDbType.Image },
+            { typeof(char[]), SqlDbType.NVarChar },
+            { typeof(bool), SqlDbType.Bit },
+            { typeof(DateTime), SqlDbType.DateTime2 },
+            { typeof(DateTimeOffset), SqlDbType.DateTimeOffset },
+            { typeof(decimal), SqlDbType.Money },
+            { typeof(double), SqlDbType.Float },
+            { typeof(int), SqlDbType.Int },
+            { typeof(float), SqlDbType.Real },
+            { typeof(long), SqlDbType.BigInt },
+            { typeof(short), SqlDbType.SmallInt },
+            { typeof(string), SqlDbType.NVarChar },
+            { typeof(TimeSpan), SqlDbType.Time },
         };
 
-        private static TableRepresentation<TTableType> GetRepresentation<TTableType>()
+        private ModelMetadata<TModel> GetRepresentation<TModel>()
         {
-            var type = typeof(TTableType);
+            var type = typeof(TModel);
             string tableName = type.Name + "s";
             var tableAttr = type.GetCustomAttributes(false).SingleOrDefault(attr => attr.GetType().Name == nameof(System.ComponentModel.DataAnnotations.Schema.TableAttribute)) as dynamic;
             if (tableAttr != null)
@@ -67,7 +68,7 @@ namespace Chic.Internal
                 tableName = tableAttr.Name;
             }
 
-            var tableRepresentation = new TableRepresentation<TTableType>
+            var tableRepresentation = new ModelMetadata<TModel>
             {
                 TableName = tableName
             };
@@ -81,7 +82,7 @@ namespace Chic.Internal
 
                 var isDbGenerated = property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(DbGeneratedAttribute));
 
-                var obj = Expression.Parameter(typeof(TTableType));
+                var obj = Expression.Parameter(typeof(TModel));
                 var prop = Expression.Property(obj, property);
                 var body = Expression.Convert(prop, typeof(object));
 
@@ -92,20 +93,20 @@ namespace Chic.Internal
                 }
 
                 // If it's nullable as a base then the type used for mapping should be a string
-                tableRepresentation.Columns.Add(new TableProperty<TTableType>
+                tableRepresentation.Columns.Add(new ModelMetadataProperty<TModel>
                 {
                     Name = property.Name,
                     Type = propertyType,
                     DbType = sqlDataTypeMap[propertyType],
                     IsDbGenerated = isDbGenerated,
-                    Get = Expression.Lambda<Func<TTableType, object>>(body, obj).Compile()
+                    Get = Expression.Lambda<Func<TModel, object>>(body, obj).Compile()
                 });
             }
 
             return tableRepresentation;
         }
 
-        private static bool IsMappable(PropertyInfo property)
+        private bool IsMappable(PropertyInfo property)
         {
             if (property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(DbIgnoreAttribute)))
             {
