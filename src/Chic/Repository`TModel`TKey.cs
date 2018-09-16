@@ -98,9 +98,12 @@ namespace Chic
 
         public async Task InsertAsync(TModel model)
         {
+            var query = $"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)} VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
             await db.ExecuteAsync(
-                $"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)} VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}",
+                query,
                 GetQueryParametersForModel(model));
+
+            hasRetrievedAll = false;
         }
 
         public async Task InsertManyAsync(IEnumerable<TModel> models)
@@ -130,6 +133,8 @@ namespace Chic
                     throw;
                 }
             }
+
+            hasRetrievedAll = false;
         }
 
         public async Task<TModel> QueryFirstAsync(string query, object param = null)
@@ -154,6 +159,8 @@ namespace Chic
             await db.ExecuteAsync(
                 $"UPDATE {typeMap.TableName} SET {GetQueryColumns(QueryColumnMode.UpdateSets)} WHERE Id = @Id",
                 queryParams);
+
+            hasRetrievedAll = false;
         }
 
         private enum QueryColumnMode

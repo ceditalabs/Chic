@@ -13,7 +13,6 @@ namespace Chic.Tests
         [Fact]
         public void CanProvisionFromString()
         {
-            var provider = GetServiceProvider();
             var provisioner = new SqlProvisioner(provider);
 
             provisioner.AddStep("DROP TABLE IF EXISTS Sample");
