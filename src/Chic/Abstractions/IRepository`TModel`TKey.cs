@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace Chic.Abstractions
     /// IRepository instance designed to be Scoped.
     /// </summary>
     /// <typeparam name="TModel">Database Model</typeparam>
-    public interface IRepository<TModel, TKey>
+    public interface IRepository<TModel, TKey> : IDisposable
         where TModel : class
     {
         Task<TModel> GetByIdAsync(TKey id);
@@ -24,7 +25,7 @@ namespace Chic.Abstractions
 
         Task UpdateAsync(TModel model);
 
-        Task InsertAsync(TModel model);
+        Task<TKey> InsertAsync(TModel model);
 
         Task InsertManyAsync(IEnumerable<TModel> models);
 

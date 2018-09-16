@@ -129,5 +129,24 @@ namespace Chic.Tests
             Assert.Equal("Test", result.Name);
             Assert.Equal("Test Description", result.Description);
         }
+
+        [Fact]
+        public async Task InsertionWithReturnedId()
+        {
+
+            var provisioner = new SqlProvisioner(provider);
+            provisioner.AddStep("DROP TABLE IF EXISTS SampleEntities");
+            provisioner.AddStep("CREATE TABLE SampleEntities (Id INT NOT NULL IDENTITY(1, 1), Name NVARCHAR(50), Description NVARCHAR(50))");
+            provisioner.Provision();
+
+            var db = provider.GetRequiredService<IDbConnection>();
+
+            var repo = new Repository<SampleEntity>(db);
+            var firstId = await repo.InsertAsync(new SampleEntity { Name = "Test 1", Description = "Test Description" });
+            var secondId = await repo.InsertAsync(new SampleEntity { Name = "Test 2", Description = "Test Description" });
+
+            Assert.Equal(1, firstId);
+            Assert.Equal(2, secondId);
+        }
     }
 }

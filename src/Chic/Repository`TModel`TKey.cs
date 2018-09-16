@@ -71,12 +71,16 @@ namespace Chic
             throw new NotImplementedException();
         }
 
-        public async Task InsertAsync(TModel model)
+        public async Task<TKey> InsertAsync(TModel model)
         {
-            var query = $"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)} VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
-            await db.ExecuteAsync(
+            var query = $@"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)}
+OUTPUT INSERTED.{typeMap.PrimaryKeyColumn.Name}
+VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
+            var insertionResult = await db.QueryAsync<TKey>(
                 query,
                 GetQueryParametersForModel(model));
+
+            return insertionResult.FirstOrDefault();
         }
 
         public async Task InsertManyAsync(IEnumerable<TModel> models)
@@ -193,6 +197,11 @@ namespace Chic
             }
 
             return colParams;
+        }
+
+        public void Dispose()
+        {
+            db?.Dispose();
         }
     }
 }
