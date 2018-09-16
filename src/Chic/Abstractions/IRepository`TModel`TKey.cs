@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
-using Chic.Constraints;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,7 +10,7 @@ namespace Chic.Abstractions
     /// </summary>
     /// <typeparam name="TModel">Database Model</typeparam>
     public interface IRepository<TModel, TKey>
-        where TModel : class, IKeyedEntity<TKey>
+        where TModel : class
     {
         Task<TModel> GetByIdAsync(TKey id);
 
@@ -35,7 +34,5 @@ namespace Chic.Abstractions
         Task<TModel> QueryFirstAsync(string query, object param = null);
         Task<TModel> QuerySingleAsync(string query, object param = null);
         Task<IEnumerable<TModel>> QueryManyAsync(string query, object param = null);
-
-        void ClearCache();
     }
 }
