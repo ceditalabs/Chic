@@ -3,6 +3,7 @@
 using Chic.Attributes;
 using Chic.Internal.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,14 +14,14 @@ namespace Chic.Internal
 {
     internal static class TypeTableMaps
     {
-        private static Dictionary<Type, TableRepresentation> TypeTableCache = new Dictionary<Type, TableRepresentation>();
+        private static ConcurrentDictionary<Type, TableRepresentation> TypeTableCache = new ConcurrentDictionary<Type, TableRepresentation>();
 
         internal static TableRepresentation<TTableType> Get<TTableType>()
         {
             var type = typeof(TTableType);
             if (!TypeTableCache.ContainsKey(type))
             {
-                TypeTableCache.Add(type, GetRepresentation<TTableType>());
+                TypeTableCache.TryAdd(type, GetRepresentation<TTableType>());
             }
 
             return (TableRepresentation<TTableType>)TypeTableCache[type];

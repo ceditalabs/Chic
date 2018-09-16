@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Dapper;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace Chic.Tests
@@ -15,6 +18,14 @@ namespace Chic.Tests
             var connection = new SqlConnection(connectionString);
             connection.Open();
             return connection;
+        }
+
+        public static IServiceProvider GetServiceProvider()
+        {
+            var services = new ServiceCollection()
+                .AddTransient<IDbConnection>(m => new SqlConnection(connectionString));
+
+            return services.BuildServiceProvider();
         }
 
         public void Dispose()
