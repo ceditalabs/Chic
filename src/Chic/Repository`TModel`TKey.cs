@@ -32,8 +32,16 @@ namespace Chic
 
         public async Task DeleteAsync(TModel model)
         {
-            var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
-            await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id", new { id });
+            if (typeMap.PrimaryKeyColumn != null)
+            {
+                var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
+                await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id", new { id });
+            } else
+            {
+                // If we don't have a key, try to delete based on all model values
+                await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {GetQueryColumns(QueryColumnMode.UpdateSets)}",
+                    GetQueryParametersForModel(model));
+            }
         }
 
         public async Task ExecuteAsync(string query, object param = null)
@@ -52,6 +60,11 @@ namespace Chic
 
         public async Task<TModel> GetByIdAsync(TKey id)
         {
+            if (typeMap.PrimaryKeyColumn == null)
+            {
+                throw new ArgumentException("Model does not have a key.", nameof(id));
+            }
+
             TModel result;
             var query = $"SELECT * FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id";
             result = await db.QuerySingleOrDefaultAsync<TModel>(query, new { id });
