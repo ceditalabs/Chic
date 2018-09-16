@@ -28,7 +28,7 @@ namespace Chic
         }
 
         public string TableName => typeMap.TableName;
-        public string PrimaryKey => typeMap.PrimaryKeyColumn?.Name;
+        public string PrimaryKeyName => typeMap.PrimaryKeyColumn?.Name;
 
         public async Task DeleteAsync(TModel model)
         {

@@ -13,6 +13,9 @@ namespace Chic.Abstractions
     public interface IRepository<TModel, TKey> : IDisposable
         where TModel : class
     {
+        string TableName { get; }
+        string PrimaryKeyName { get; }
+
         Task<TModel> GetByIdAsync(TKey id);
 
         Task<IEnumerable<TModel>> GetAllAsync();
