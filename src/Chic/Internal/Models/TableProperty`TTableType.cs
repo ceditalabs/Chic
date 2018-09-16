@@ -10,6 +10,7 @@ namespace Chic.Internal.Models
         public string Name { get; set; }
         public Type Type { get; set; }
         public SqlDbType DbType { get; set; }
+        public bool IsKey { get; set; }
         public bool IsDbGenerated { get; set; }
         public Func<TTableType, object> Get { get; set; }
     }

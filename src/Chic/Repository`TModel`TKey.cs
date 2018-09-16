@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Cedita Ltd. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
 using Chic.Abstractions;
-using Chic.Constraints;
 using Chic.Internal;
 using Chic.Internal.Models;
 using Dapper;
@@ -17,29 +16,21 @@ namespace Chic
 {
     public class Repository<TModel, TKey> : IRepository<TModel, TKey>
         where TKey : IEquatable<TKey>
-        where TModel : class, IKeyedEntity<TKey>
+        where TModel : class
     {
         protected readonly IDbConnection db;
-        protected readonly ICollection<TModel> modelCache;
         private readonly TableRepresentation<TModel> typeMap;
-        private bool hasRetrievedAll;
 
         public Repository(IDbConnection db)
         {
             this.db = db;
-            modelCache = new List<TModel>();
             typeMap = TypeTableMaps.Get<TModel>();
-        }
-
-        public void ClearCache()
-        {
-            modelCache.Clear();
-            hasRetrievedAll = false;
         }
 
         public async Task DeleteAsync(TModel model)
         {
-            await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE Id = @id", new { id = model.Id });
+            var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
+            await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id", new { id });
         }
 
         public async Task ExecuteAsync(string query, object param = null)
@@ -49,34 +40,18 @@ namespace Chic
 
         public async Task<IEnumerable<TModel>> GetAllAsync()
         {
-            if (!hasRetrievedAll)
-            {
-                var query = $"SELECT * FROM {typeMap.TableName}";
-                object param = null;
-                if (modelCache.Count > 0)
-                {
-                    query += " WHERE Id NOT IN @ids";
-                    param = new { ids = modelCache.Select(m => m.Id) };
-                }
+            var query = $"SELECT * FROM {typeMap.TableName}";
 
-                var results = await db.QueryAsync<TModel>(query, param);
-                hasRetrievedAll = true;
-                foreach (var result in results)
-                {
-                    modelCache.Add(result);
-                }
-            }
+            var results = await db.QueryAsync<TModel>(query);
 
-            return modelCache;
+            return results;
         }
 
         public async Task<TModel> GetByIdAsync(TKey id)
         {
             TModel result;
-            if ((result = modelCache.SingleOrDefault(m => m.Id.Equals(id))) == null)
-            {
-                result = await db.QuerySingleOrDefaultAsync<TModel>($"SELECT * FROM {typeMap.TableName} WHERE Id = @id", new { id });
-            }
+            var query = $"SELECT * FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id";
+            result = await db.QuerySingleOrDefaultAsync<TModel>(query, new { id });
 
             return result;
         }
@@ -102,8 +77,6 @@ namespace Chic
             await db.ExecuteAsync(
                 query,
                 GetQueryParametersForModel(model));
-
-            hasRetrievedAll = false;
         }
 
         public async Task InsertManyAsync(IEnumerable<TModel> models)
@@ -133,8 +106,6 @@ namespace Chic
                     throw;
                 }
             }
-
-            hasRetrievedAll = false;
         }
 
         public async Task<TModel> QueryFirstAsync(string query, object param = null)
@@ -155,12 +126,10 @@ namespace Chic
         public async Task UpdateAsync(TModel model)
         {
             var queryParams = GetQueryParametersForModel(model);
-            queryParams.Add(nameof(model.Id), model.Id);
+            queryParams.Add("Id", typeMap.PrimaryKeyColumn.Get(model));
             await db.ExecuteAsync(
-                $"UPDATE {typeMap.TableName} SET {GetQueryColumns(QueryColumnMode.UpdateSets)} WHERE Id = @Id",
+                $"UPDATE {typeMap.TableName} SET {GetQueryColumns(QueryColumnMode.UpdateSets)} WHERE {typeMap.PrimaryKeyColumn.Name} = @Id",
                 queryParams);
-
-            hasRetrievedAll = false;
         }
 
         private enum QueryColumnMode
@@ -179,7 +148,7 @@ namespace Chic
             }
             foreach (var column in typeMap.Columns)
             {
-                if (column.Name == "Id" || column.IsDbGenerated) { continue; }
+                if (column.IsKey || column.IsDbGenerated) { continue; }
 
                 switch (mode)
                 {
@@ -218,7 +187,7 @@ namespace Chic
 
             foreach (var column in typeMap.Columns)
             {
-                if (column.Name == "Id" || column.IsDbGenerated) { continue; }
+                if (column.IsKey || column.IsDbGenerated) { continue; }
 
                 colParams.Add(column.Name, column.Get(model));
             }

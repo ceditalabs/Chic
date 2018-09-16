@@ -27,6 +27,8 @@ namespace Chic.Internal
             return (TableRepresentation<TTableType>)TypeTableCache[type];
         }
 
+        private static readonly string idConvention = "Id";
+
         private static readonly Type[] mappableTypes = {
             typeof(bool),
             typeof(byte),
@@ -68,6 +70,8 @@ namespace Chic.Internal
                 tableName = tableAttr.Name;
             }
 
+            var conventionKeys = new[] { idConvention, type.Name + idConvention };
+
             var tableRepresentation = new TableRepresentation<TTableType>
             {
                 TableName = tableName
@@ -81,6 +85,8 @@ namespace Chic.Internal
                 if (!IsMappable(property)) continue;
 
                 var isDbGenerated = property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(DbGeneratedAttribute));
+                var isKey = property.CustomAttributes.Any(m => m.AttributeType.Name == nameof(PrimaryKeyAttribute))
+                    || conventionKeys.Contains(property.Name);
 
                 var obj = Expression.Parameter(typeof(TTableType));
                 var prop = Expression.Property(obj, property);
@@ -99,9 +105,17 @@ namespace Chic.Internal
                     Type = propertyType,
                     DbType = sqlDataTypeMap[propertyType],
                     IsDbGenerated = isDbGenerated,
+                    IsKey = isKey,
                     Get = Expression.Lambda<Func<TTableType, object>>(body, obj).Compile()
                 });
             }
+
+            // Determine & Store Primary Key
+            if (tableRepresentation.Columns.Count(m => m.IsKey) > 1)
+            {
+                throw new TableMappingException($"Type {type.Name} discovered multiple primary keys");
+            }
+            tableRepresentation.PrimaryKeyColumn = tableRepresentation.Columns.FirstOrDefault(m => m.IsKey);
 
             return tableRepresentation;
         }

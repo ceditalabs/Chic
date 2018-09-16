@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
 using System.Data;
 using Chic.Abstractions;
-using Chic.Constraints;
 
 namespace Chic
 {
     public class Repository<TModel> : Repository<TModel, int>, IRepository<TModel>
-        where TModel : class, IKeyedEntity
+        where TModel : class
     {
         public Repository(IDbConnection db) : base(db)
         {

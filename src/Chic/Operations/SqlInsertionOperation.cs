@@ -1,5 +1,4 @@
-﻿using Chic.Constraints;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,7 +11,7 @@ namespace Chic.Operations
     /// <typeparam name="TKey"></typeparam>
     public class SqlInsertionOperation<TModel, TKey>
         where TKey : IEquatable<TKey>
-        where TModel : class, IKeyedEntity<TKey>
+        where TModel : class
     {
 
     }
