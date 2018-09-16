@@ -1,10 +1,8 @@
-using Chic.Abstractions;
-using Chic.DependencyInjection;
+// Copyright (c) Cedita Ltd. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See LICENSE in the solution root for license information.
 using Chic.Tests.Models;
-using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
