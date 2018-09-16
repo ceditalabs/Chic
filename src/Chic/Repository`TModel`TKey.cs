@@ -27,6 +27,9 @@ namespace Chic
             typeMap = TypeTableMaps.Get<TModel>();
         }
 
+        public string TableName => typeMap.TableName;
+        public string PrimaryKey => typeMap.PrimaryKeyColumn?.Name;
+
         public async Task DeleteAsync(TModel model)
         {
             var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
