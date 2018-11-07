@@ -3,6 +3,14 @@ Lightweight, intuitive and performant Data Layer (Repositories, Change Tracking)
 
 **Labs Notice** - This is a Cedita Labs project, and is offered unsupported. We encourage external contributions.
 
+## Roadmap
+
+- Support for ASP.NET Identity
+- High performance tree insertions
+- Dynamic Query Building (Similar to `IQueryable` interface, but with less hell)
+- Set / Configuration Support for Entities
+- Dynamic Update / Select building
+
 ## Get Started
 Chic is available as a Prerelease package from NuGet.
 
@@ -24,9 +32,11 @@ The easiest way to use Chic is through Dependency Injection. With ASP.NET Core, 
     }
 
 ### Your First Model
-Chic currently supports entities that have a Key property (of any type - but the below example uses the int key method). These entities must inherit from `IKeyedEntity`.
+Chic currently supports entities that have a Key property (of any type - but the below example uses the int key method).
 
-    public class DemoModel : IKeyedEntity 
+**Important**: `IKeyedEntity` was previously required. This is now deprecated, as Chic will automatically discover the Primary Key field based on convention (`Id`, or `{ClassName}Id`).
+
+    public class DemoModel 
     {
         public int Id { get; set; }
         public string Name { get; set; }
