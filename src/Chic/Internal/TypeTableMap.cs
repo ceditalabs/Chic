@@ -76,7 +76,7 @@ namespace Chic.Internal
             {
                 TableName = tableName
             };
-            var properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in properties)
             {
                 var nullableBaseType = Nullable.GetUnderlyingType(property.PropertyType);
