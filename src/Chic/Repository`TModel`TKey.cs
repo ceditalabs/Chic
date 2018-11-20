@@ -27,10 +27,22 @@ namespace Chic
             typeMap = TypeTableMaps.Get<TModel>();
         }
 
+        public string TableName => typeMap.TableName;
+        public string PrimaryKeyName => typeMap.PrimaryKeyColumn?.Name;
+
         public async Task DeleteAsync(TModel model)
         {
-            var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
-            await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id", new { id });
+            if (typeMap.PrimaryKeyColumn != null)
+            {
+                var id = (TKey)typeMap.PrimaryKeyColumn.Get(model);
+                await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id", new { id });
+            }
+            else
+            {
+                // If we don't have a key, try to delete based on all model values
+                await db.ExecuteAsync($"DELETE FROM {typeMap.TableName} WHERE {GetQueryColumns(QueryColumnMode.UpdateSets)}",
+                    GetQueryParametersForModel(model));
+            }
         }
 
         public async Task ExecuteAsync(string query, object param = null)
@@ -49,6 +61,11 @@ namespace Chic
 
         public async Task<TModel> GetByIdAsync(TKey id)
         {
+            if (typeMap.PrimaryKeyColumn == null)
+            {
+                throw new ArgumentException("Model does not have a key.", nameof(id));
+            }
+
             TModel result;
             var query = $"SELECT * FROM {typeMap.TableName} WHERE {typeMap.PrimaryKeyColumn.Name} = @id";
             result = await db.QuerySingleOrDefaultAsync<TModel>(query, new { id });
@@ -71,12 +88,16 @@ namespace Chic
             throw new NotImplementedException();
         }
 
-        public async Task InsertAsync(TModel model)
+        public async Task<TKey> InsertAsync(TModel model)
         {
-            var query = $"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)} VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
-            await db.ExecuteAsync(
+            var query = $@"INSERT INTO {typeMap.TableName} {GetQueryColumns(QueryColumnMode.InsertColumns)}
+OUTPUT INSERTED.{typeMap.PrimaryKeyColumn.Name}
+VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
+            var insertionResult = await db.QueryAsync<TKey>(
                 query,
                 GetQueryParametersForModel(model));
+
+            return insertionResult.FirstOrDefault();
         }
 
         public async Task InsertManyAsync(IEnumerable<TModel> models)
@@ -193,6 +214,11 @@ namespace Chic
             }
 
             return colParams;
+        }
+
+        public void Dispose()
+        {
+            db?.Dispose();
         }
     }
 }

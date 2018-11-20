@@ -12,6 +12,9 @@ namespace Chic.Abstractions
     public interface IRepository<TModel, TKey>
         where TModel : class
     {
+        string TableName { get; }
+        string PrimaryKeyName { get; }
+
         Task<TModel> GetByIdAsync(TKey id);
 
         Task<IEnumerable<TModel>> GetAllAsync();
@@ -24,7 +27,7 @@ namespace Chic.Abstractions
 
         Task UpdateAsync(TModel model);
 
-        Task InsertAsync(TModel model);
+        Task<TKey> InsertAsync(TModel model);
 
         Task InsertManyAsync(IEnumerable<TModel> models);
 
