@@ -27,6 +27,11 @@ namespace Chic.Internal
             return (TableRepresentation<TTableType>)TypeTableCache[type];
         }
 
+        internal static TableRepresentation<TTableType> Get<TTableType>(TTableType dto)
+        {
+            return Get<TTableType>();
+        }
+
         private static readonly string idConvention = "Id";
 
         private static readonly Type[] mappableTypes = {

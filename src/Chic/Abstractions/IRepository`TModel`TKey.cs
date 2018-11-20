@@ -26,6 +26,7 @@ namespace Chic.Abstractions
         Task<IEnumerable<TModel>> GetPageAsync(int pageSize = 50, int pageNum = 0);
 
         Task UpdateAsync(TModel model);
+        Task UpdateAsync<TDto>(TModel model, TDto dto);
 
         Task<TKey> InsertAsync(TModel model);
 

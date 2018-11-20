@@ -148,5 +148,45 @@ namespace Chic.Tests
             Assert.Equal(1, firstId);
             Assert.Equal(2, secondId);
         }
+
+        [Fact]
+        public async Task CanUpdateRepository()
+        {
+            ProvisionSampleTable();
+
+            var db = provider.GetRequiredService<IDbConnection>();
+
+            var repo = new Repository<SampleEntity>(db);
+            await repo.InsertAsync(new SampleEntity { Id = 0, Name = "Test", Description = "Test Description" });
+            await repo.UpdateAsync(new SampleEntity { Id = 0, Name = "Test Updated", Description = "Test Updated Description" });
+
+            var results = await repo.GetAllAsync();
+
+            Assert.Single(results);
+            var firstResult = results.First();
+            Assert.Equal(0, firstResult.Id);
+            Assert.Equal("Test Updated", firstResult.Name);
+            Assert.Equal("Test Updated Description", firstResult.Description);
+        }
+
+        [Fact]
+        public async Task CanUpdateRepositoryViaDto()
+        {
+            ProvisionSampleTable();
+
+            var db = provider.GetRequiredService<IDbConnection>();
+
+            var repo = new Repository<SampleEntity>(db);
+            await repo.InsertAsync(new SampleEntity { Id = 0, Name = "Test", Description = "Test Description" });
+            await repo.UpdateAsync(new SampleEntity { Id = 0, Description = "Test Updated Description" }, new { Name = "Test Updated" });
+
+            var results = await repo.GetAllAsync();
+
+            Assert.Single(results);
+            var firstResult = results.First();
+            Assert.Equal(0, firstResult.Id);
+            Assert.Equal("Test Updated", firstResult.Name);
+            Assert.Equal("Test Description", firstResult.Description);
+        }
     }
 }

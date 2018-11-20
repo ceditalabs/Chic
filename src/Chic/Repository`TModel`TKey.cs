@@ -147,10 +147,25 @@ VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
         public async Task UpdateAsync(TModel model)
         {
             var queryParams = GetQueryParametersForModel(model);
+            var queryColumns = GetQueryColumns(QueryColumnMode.UpdateSets);
+
             queryParams.Add("Id", typeMap.PrimaryKeyColumn.Get(model));
             await db.ExecuteAsync(
-                $"UPDATE {typeMap.TableName} SET {GetQueryColumns(QueryColumnMode.UpdateSets)} WHERE {typeMap.PrimaryKeyColumn.Name} = @Id",
-                queryParams);
+                    $"UPDATE {typeMap.TableName} SET {queryColumns} WHERE {typeMap.PrimaryKeyColumn.Name} = @Id",
+                    queryParams);
+        }
+
+        public async Task UpdateAsync<TDto>(TModel model, TDto dto)
+        {
+            // Use the DTO for insertion data
+            var queryParams = GetQueryParametersForModel(dto);
+            var queryColumns = GetQueryColumns(QueryColumnMode.UpdateSets, dto);
+
+            queryParams.Add("Id", typeMap.PrimaryKeyColumn.Get(model));
+
+            await db.ExecuteAsync(
+                    $"UPDATE {typeMap.TableName} SET {queryColumns} WHERE {typeMap.PrimaryKeyColumn.Name} = @Id",
+                    queryParams);
         }
 
         private enum QueryColumnMode
@@ -162,12 +177,19 @@ VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
 
         private string GetQueryColumns(QueryColumnMode mode)
         {
+            return GetQueryColumns<TModel>(mode);
+        }
+
+        private string GetQueryColumns<TType>(QueryColumnMode mode, TType model = default(TType))
+        {
+            var map = TypeTableMaps.Get<TType>();
+
             var cols = new StringBuilder();
             if (mode == QueryColumnMode.InsertColumns || mode == QueryColumnMode.InsertValues)
             {
                 cols.Append("(");
             }
-            foreach (var column in typeMap.Columns)
+            foreach (var column in map.Columns)
             {
                 if (column.IsKey || column.IsDbGenerated) { continue; }
 
@@ -202,11 +224,13 @@ VALUES {GetQueryColumns(QueryColumnMode.InsertValues)}";
             return cols.ToString();
         }
 
-        private DynamicParameters GetQueryParametersForModel(TModel model)
+        private DynamicParameters GetQueryParametersForModel<TType>(TType model)
         {
             var colParams = new DynamicParameters();
 
-            foreach (var column in typeMap.Columns)
+            var map = TypeTableMaps.Get<TType>();
+
+            foreach (var column in map.Columns)
             {
                 if (column.IsKey || column.IsDbGenerated) { continue; }
 
