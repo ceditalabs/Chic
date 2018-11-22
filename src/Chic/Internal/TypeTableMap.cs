@@ -45,12 +45,14 @@ namespace Chic.Internal
             typeof(Guid),
             typeof(int),
             typeof(string),
+            typeof(char),
         };
 
         private static readonly Dictionary<Type, SqlDbType> sqlDataTypeMap = new Dictionary<Type, SqlDbType>
         {
                 { typeof(byte), SqlDbType.TinyInt },
                 { typeof(byte[]), SqlDbType.Image },
+                { typeof(char), SqlDbType.NChar },
                 { typeof(char[]), SqlDbType.NVarChar },
                 { typeof(bool), SqlDbType.Bit },
                 { typeof(DateTime), SqlDbType.DateTime2 },
